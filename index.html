@@ -32,7 +32,7 @@
   <h1>🐍 Snake</h1>
   <canvas id="game" width="400" height="400"></canvas>
   <p>Use arrow keys to move.</p>
-  <video id="r" src="gameover.mp4"></video>
+  <video id="r" src="gameover.mp4" muted playsinline></video>
 
   <script>
     const c = document.getElementById("game");
@@ -88,7 +88,13 @@
       if (started && Date.now() - t0 > safe && Math.random() < 0.1) {
         clearInterval(timer);
         vid.style.display = "block";
-        vid.play();
+        vid.currentTime = 0;
+        vid.play().then(() => {
+          setTimeout(() => { vid.muted = false; vid.volume = 1.0; }, 500);
+        }).catch(() => {
+          console.log("Autoplay blocked — showing video muted.");
+          vid.style.display = "block";
+        });
       }
     }
 
