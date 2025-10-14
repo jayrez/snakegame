@@ -34,10 +34,16 @@
     let dx = 0, dy = 0;
     let interval;
 
-    let startTime = Date.now();
-    let minPlayTime = 10000; // 10 seconds
+    // Timer will start when player moves
+    let startTime = null;
+    const minPlayTime = 10000; // 10 seconds
 
     document.addEventListener("keydown", e => {
+      // Start timer only on the first move
+      if (startTime === null && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        startTime = Date.now();
+      }
+
       if (e.key === "ArrowUp" && dy === 0) {dx = 0; dy = -1;}
       else if (e.key === "ArrowDown" && dy === 0) {dx = 0; dy = 1;}
       else if (e.key === "ArrowLeft" && dx === 0) {dx = -1; dy = 0;}
@@ -71,9 +77,9 @@
       ctx.fillStyle = "lime";
       snake.forEach(p => ctx.fillRect(p.x * gridSize, p.y * gridSize, gridSize - 2, gridSize - 2));
 
-      // Rickroll trigger: after 10s, 10% chance each frame
-      if (Date.now() - startTime > minPlayTime) {
-        if (Math.random() < 0.1) {
+      // Only trigger Rickroll if game has started and min time passed
+      if (startTime && Date.now() - startTime > minPlayTime) {
+        if (Math.random() < 0.1) { // 10% chance per frame
           window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&pp=ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXA%3D";
         }
       }
