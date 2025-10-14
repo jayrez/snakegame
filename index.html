@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Totally Legit Snake Game</title>
+  <title>Snake</title>
   <style>
     body {
       background: #111;
       color: lime;
       font-family: monospace;
       text-align: center;
+      overflow: hidden;
     }
     canvas {
       border: 1px solid lime;
@@ -15,77 +16,83 @@
       margin: 20px auto;
       background: #000;
     }
+    video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 999;
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>🐍 Snake Game</h1>
+  <h1>🐍 Snake</h1>
   <canvas id="game" width="400" height="400"></canvas>
   <p>Use arrow keys to move.</p>
+  <video id="r" src="gameover.mp4"></video>
 
   <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+    const c = document.getElementById("game");
+    const x = c.getContext("2d");
+    const vid = document.getElementById("r");
 
-    const gridSize = 20;
-    const tileCount = canvas.width / gridSize;
-
-    let snake = [{x: 10, y: 10}];
-    let apple = {x: 15, y: 15};
-    let dx = 0, dy = 0;
-    let interval;
-
-    // Timer will start when player moves
-    let startTime = null;
-    const minPlayTime = 10000; // 10 seconds
+    const s = 20, n = c.width / s;
+    let snake = [{x: 10, y: 10}], apple = {x: 15, y: 15};
+    let dx = 0, dy = 0, timer = null, started = false;
+    let t0 = 0, safe = 10000; // 10s safe playtime
 
     document.addEventListener("keydown", e => {
-      // Start timer only on the first move
-      if (startTime === null && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        startTime = Date.now();
+      if (!started && ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+        started = true;
+        t0 = Date.now();
       }
-
       if (e.key === "ArrowUp" && dy === 0) {dx = 0; dy = -1;}
       else if (e.key === "ArrowDown" && dy === 0) {dx = 0; dy = 1;}
       else if (e.key === "ArrowLeft" && dx === 0) {dx = -1; dy = 0;}
       else if (e.key === "ArrowRight" && dx === 0) {dx = 1; dy = 0;}
     });
 
-    function gameLoop() {
+    function draw() {
       let head = {x: snake[0].x + dx, y: snake[0].y + dy};
       snake.unshift(head);
 
       if (head.x === apple.x && head.y === apple.y) {
-        apple.x = Math.floor(Math.random() * tileCount);
-        apple.y = Math.floor(Math.random() * tileCount);
+        apple.x = Math.floor(Math.random() * n);
+        apple.y = Math.floor(Math.random() * n);
       } else {
         snake.pop();
       }
 
-      if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount ||
-          snake.slice(1).some(p => p.x === head.x && p.y === head.y)) {
-        clearInterval(interval);
+      if (
+        head.x < 0 || head.x >= n || head.y < 0 || head.y >= n ||
+        snake.slice(1).some(p => p.x === head.x && p.y === head.y)
+      ) {
+        clearInterval(timer);
         alert("Game Over!");
         location.reload();
       }
 
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      x.fillStyle = "#000";
+      x.fillRect(0, 0, c.width, c.height);
 
-      ctx.fillStyle = "red";
-      ctx.fillRect(apple.x * gridSize, apple.y * gridSize, gridSize, gridSize);
+      x.fillStyle = "red";
+      x.fillRect(apple.x * s, apple.y * s, s, s);
 
-      ctx.fillStyle = "lime";
-      snake.forEach(p => ctx.fillRect(p.x * gridSize, p.y * gridSize, gridSize - 2, gridSize - 2));
+      x.fillStyle = "lime";
+      snake.forEach(p => x.fillRect(p.x * s, p.y * s, s - 2, s - 2));
 
-      // Only trigger Rickroll if game has started and min time passed
-      if (startTime && Date.now() - startTime > minPlayTime) {
-        if (Math.random() < 0.1) { // 10% chance per frame
-          window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&pp=ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXA%3D";
-        }
+      // trigger hidden video after 10s with 10% chance
+      if (started && Date.now() - t0 > safe && Math.random() < 0.1) {
+        clearInterval(timer);
+        vid.style.display = "block";
+        vid.play();
       }
     }
 
-    interval = setInterval(gameLoop, 100);
+    timer = setInterval(draw, 100);
   </script>
 </body>
 </html>
